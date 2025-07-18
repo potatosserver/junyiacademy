@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta name="google-site-verification" content="ahdkishmook7wgZXJ6JVA43nNO5SSccNOlvmB575Od4" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>均一題目解析器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .katex-display > .katex {
+            white-space: normal;
+        }
+        .katex-display {
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 16px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body class="p-4 bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-4xl">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">均一題目解析器</h1>
+
+        <div id="input-container" class="mb-6 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <input type="text" id="apiUrl" placeholder="輸入題目網址或 API 網址"
+                   class="flex-grow p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-gray-700">
+            <button id="fetchButton"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                抓取資料
+            </button>
+        </div>
+
+        <div id="bookmarklet-tutorial" class="bg-blue-50 p-6 rounded-lg shadow-md mb-6 border border-blue-200">
+            <div id="update-nag" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded" role="alert">
+                <p class="font-bold">版本過舊！</p>
+                <p>您的書籤小工具版本已過期，請重新將下方的按鈕拖曳到書籤列以更新至最新版。</p>
+            </div>
+            <h2 class="text-xl font-bold text-blue-800 mb-4">書籤小工具安裝教學(請保持更新版本)</h2>
+            <p class="text-gray-700 mb-3">
+                先新增任意書籤，再到新分頁上方對書籤列點擊右鍵並選取"顯示書籤列"
+            </p>
+	    <p class="text-gray-700 mb-3">
+                再將以下連結拖曳到您的瀏覽器書籤列，即可在均一教育平台的題目頁面快速開啟解析器。
+            </p>
+            <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <a id="bookmarkletLink" href="javascript:(function(){if(document.getElementById('junyi-overlay-iframe-container')){document.getElementById('junyi-overlay-iframe-container').remove();return;}var bookmarkletVersion='2.1';var currentUrl=encodeURIComponent(window.location.href);var hostedPageUrl='https://junyiacademy.pages.dev/?junyiUrl='+currentUrl+'&v='+bookmarkletVersion;var container=document.createElement('div');container.id='junyi-overlay-iframe-container';container.style.cssText='position:fixed;bottom:20px;right:20px;width:400px;height:600px;z-index:9999;border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);overflow:hidden;display:flex;flex-direction:column;';var header=document.createElement('div');header.style.cssText='height:30px;background-color:#eee;cursor:grab;border-top-left-radius:8px;border-top-right-radius:8px;display:flex;justify-content:space-between;align-items:center;padding:0 10px;font-size:14px;color:#666;';var titleSpan=document.createElement('span');titleSpan.textContent='移動條';header.appendChild(titleSpan);var closeBtn=document.createElement('button');closeBtn.textContent='✖';closeBtn.style.cssText='background:none;border:none;font-size:18px;cursor:pointer;color:#555;';closeBtn.onclick=function(){document.getElementById('junyi-overlay-iframe-container').remove();};header.appendChild(closeBtn);container.appendChild(header);var iframe=document.createElement('iframe');iframe.src=hostedPageUrl;iframe.style.cssText='width:100%;flex-grow:1;border:none;background-color:#f0f2f5;border-bottom-left-radius:8px;border-bottom-right-radius:8px;overflow:auto;';iframe.allow='clipboard-write';container.appendChild(iframe);document.body.appendChild(container);var isDragging=false;var offsetX,offsetY;header.addEventListener('mousedown',function(e){isDragging=true;offsetX=e.clientX-container.getBoundingClientRect().left;offsetY=e.clientY-container.getBoundingClientRect().top;container.style.cursor='grabbing';});document.addEventListener('mousemove',function(e){if(!isDragging)return;var newX=e.clientX-offsetX;var newY=e.clientY-offsetY;container.style.left=newX+'px';container.style.top=newY+'px';container.style.right='auto';container.style.bottom='auto';});document.addEventListener('mouseup',function(){isDragging=false;container.style.cursor='grab';});window.addEventListener('message',function(event){if(event.data==='closeJunyiOverlay'){document.getElementById('junyi-overlay-iframe-container').remove();}});})();"
+                   class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 flex-grow text-center cursor-grab"
+                   title="拖曳此連結到書籤列(請保持更新版本)">
+                    均一題目解析器(v2.1)
+                </a>
+            </div>
+        </div>
+
+        <div id="loadingIndicator" class="hidden text-center text-blue-600 font-medium mb-4">
+            載入中...
+        </div>
+
+        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">錯誤！</strong>
+            <span class="block sm:inline" id="errorText"></span>
+        </div>
+
+        <div id="questionsContainer" class="space-y-12">
+        </div>
+    </div>
+
+    <!-- KaTeX 相關腳本 -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+
+    <script>
+        // 在 DOM 內容完全載入後初始化 KaTeX
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeKaTeX();
+        });
+
+        function copyFormula(buttonElement, textToCopy) {
+            if (!navigator.clipboard) {
+                alert('您的瀏覽器不支援複製功能。');
+                return;
+            }
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = buttonElement.textContent;
+                buttonElement.textContent = '已複製!';
+                buttonElement.disabled = true;
+                setTimeout(() => {
+                    buttonElement.textContent = originalText;
+                    buttonElement.disabled = false;
+                }, 2000);
+            }).catch(err => {
+                console.error('複製失敗: ', err);
+                alert('複製失敗。');
+            });
+        }
+
+        function initializeKaTeX() {
+            const inputContainer = document.getElementById('input-container');
+            const apiUrlInput = document.getElementById('apiUrl');
+            const fetchButton = document.getElementById('fetchButton');
+            const questionsContainer = document.getElementById('questionsContainer');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const bookmarkletTutorial = document.getElementById('bookmarklet-tutorial');
+            const updateNag = document.getElementById('update-nag');
+            
+            const currentAppVersion = '2.1';
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const isFromQuery = urlParams.has('junyiUrl');
+            const junyiUrlFromQuery = urlParams.get('junyiUrl');
+            const bookmarkletVersion = urlParams.get('v');
+            
+            const renderMath = () => {
+                if (window.renderMathInElement) {
+                    renderMathInElement(questionsContainer, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false,
+                        trust: (context) => ['\\mbox'].includes(context.command),
+                    });
+                }
+            };
+            
+            const showError = (message) => {
+                errorMessage.classList.remove('hidden');
+                errorText.textContent = message;
+            };
+
+            const hideError = () => {
+                errorMessage.classList.add('hidden');
+                errorText.textContent = '';
+            };
+
+            const convertToApiUrl = (inputUrl) => {
+                try {
+                    const url = new URL(inputUrl);
+                    if (!url.hostname.includes('junyiacademy.org')) {
+                        return null;
+                    }
+
+                    if (url.pathname.includes('/api/v2/perseus/')) {
+                        return inputUrl;
+                    }
+
+                    if (url.pathname.includes('/e/')) {
+                        const pathSegments = url.pathname.split('/');
+                        const eIndex = pathSegments.indexOf('e');
+                        if (eIndex !== -1 && eIndex + 1 < pathSegments.length) {
+                            const missionId = pathSegments[eIndex + 1];
+                            if (missionId) {
+                                return `https://www.junyiacademy.org/api/v2/perseus/${missionId}/get_question`;
+                            }
+                        }
+                    }
+                    return null;
+                } catch (e) {
+                    return null;
+                }
+            };
+
+            const fetchAndDisplayQuestions = async () => {
+                let rawUrl = apiUrlInput.value.trim();
+
+                if (!rawUrl) {
+                    showError('請輸入一個有效的題目網址或 API 網址。');
+                    return;
+                }
+
+                if (rawUrl && !/^(https?:\/\/)/i.test(rawUrl)) {
+                    rawUrl = 'https://' + rawUrl;
+                    apiUrlInput.value = rawUrl;
+                }
+                
+                questionsContainer.innerHTML = '';
+                hideError();
+
+                const apiUrl = convertToApiUrl(rawUrl);
+
+                if (apiUrl === null) {
+                    showError('網址無效。請輸入有效的均一題目頁面網址 (需包含 /e/) 或均一 API 網址。');
+                    return;
+                }
+                
+                apiUrlInput.value = apiUrl;
+                loadingIndicator.classList.remove('hidden');
+                
+                // This function now correctly handles HTML special characters in choice content.
+                function parseChoiceContent(htmlContent, altText = "選項圖片") {
+                    // Check for the specific image format from Junyi.
+                    // Assumes that if data-img-src is present, the content is an HTML snippet for an image.
+                    if (htmlContent.includes('data-img-src')) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = htmlContent;
+                        const imgSpan = tempDiv.querySelector('span[data-img-src]');
+                        if (imgSpan) {
+                            const imgSrc = imgSpan.getAttribute('data-img-src');
+                            return `<img src="${imgSrc}" alt="${altText}" class="max-w-xs my-2 rounded-md inline-block align-middle">`;
+                        }
+                    }
+
+                    // For all other content, treat as text (with potential KaTeX markup).
+                    // Escape special HTML characters like '<' and '>' to prevent the browser
+                    // from interpreting them as HTML tags, which causes rendering errors.
+                    const escapedContent = htmlContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    return `<span class="inline-block align-middle">${escapedContent}</span>`;
+                }
+
+
+                try {
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP 錯誤！狀態碼：${response.status}`);
+                    }
+                    const data = await response.json();
+
+                    if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+                        let questions = data.data;
+
+                        // Reverse the order of questions
+                        questions.reverse();
+
+                        questions.forEach((item, index) => {
+                            if (item.question && item.question.question) {
+                                const questionData = item.question.question;
+                                const hintsData = item.question.hints;
+                                
+                                let processedQuestionContent = questionData.content || '<p>沒有找到題目內容。</p>';
+                                let hintsContent = '';
+                                let solutionContent = '';
+
+                                if (questionData.widgets) {
+                                    for (const widgetKey in questionData.widgets) {
+                                        const widget = questionData.widgets[widgetKey];
+                                        const placeholder = `[[\u2603 ${widgetKey}]]`;
+                                        let replacementHtml = '';
+                                        
+                                        if ((widget.type === 'radio' || widget.type === 'multiple-choice') && widget.options && Array.isArray(widget.options.choices)) {
+                                            const choicesHtml = widget.options.choices.map(choice => {
+                                                const parsedContent = parseChoiceContent(choice.content);
+                                                return `<li class="p-2 border-b last:border-b-0 text-gray-800">${parsedContent}</li>`;
+                                            }).join('');
+                                            replacementHtml = `<ul class="list-none p-4 mt-4 bg-gray-100 rounded-md border">${choicesHtml}</ul>`;
+                                        } 
+                                        else if (widget.type === 'image' && widget.options && widget.options.backgroundImage && widget.options.backgroundImage.url) {
+                                            replacementHtml = `<img src="${widget.options.backgroundImage.url}" alt="題目圖片" class="question-image">`;
+                                        }
+                                        else if (widget.type === 'expression' || widget.type === 'input-number' || widget.type === 'numeric-input' || widget.type === 'input-text') {
+                                           replacementHtml = `<span class="inline-block px-2 py-1 bg-yellow-200 text-yellow-800 rounded-md font-mono">[填空區]</span>`;
+                                        }
+                                        else if (widget.type === 'dropdown') {
+                                            replacementHtml = `<span class="inline-block px-2 py-1 bg-cyan-200 text-cyan-800 rounded-md font-mono">[下拉選單]</span>`;
+                                        }
+                                        else if (widget.type === 'sorter') {
+                                            replacementHtml = `<span class="inline-block px-2 py-1 bg-orange-200 text-orange-800 rounded-md font-mono">[排序區]</span>`;
+                                        }
+                                        else {
+                                            replacementHtml = `<span class="text-red-500">[${widget.type || '未知'} widget 內容]</span>`;
+                                        }
+                                        
+                                        const placeholderRegex = new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+                                        processedQuestionContent = processedQuestionContent.replace(placeholderRegex, replacementHtml);
+                                    }
+                                    
+                                    const orderedWidgetKeys = [];
+                                    const widgetOrderRegex = /\[\[\u2603 (.*?)\]\]/g;
+                                    let match;
+                                    while ((match = widgetOrderRegex.exec(questionData.content)) !== null) {
+                                        orderedWidgetKeys.push(match[1].trim());
+                                    }
+
+                                    let solutionsFound = false;
+                                    if(orderedWidgetKeys.length > 0) {
+                                        orderedWidgetKeys.forEach(widgetKey => {
+                                            const widget = questionData.widgets[widgetKey];
+                                            if (!widget || !widget.options) return;
+
+                                            solutionsFound = true; 
+
+                                            if ((widget.type === 'radio' || widget.type === 'multiple-choice') && Array.isArray(widget.options.choices)) {
+                                                const prefixes = widget.options.choicePrefixes;
+                                                
+                                                if (widget.options.multipleSelect) {
+                                                    const correctAnswers = [];
+                                                    widget.options.choices.forEach((choice, choiceIndex) => {
+                                                        if (choice.correct) {
+                                                            correctAnswers.push({
+                                                                content: choice.content,
+                                                                prefix: prefixes && prefixes[choiceIndex] ? prefixes[choiceIndex] : ''
+                                                            });
+                                                        }
+                                                    });
+
+                                                    if (correctAnswers.length > 0) {
+                                                        const answersHtml = correctAnswers.map(answer => {
+                                                            const parsedContent = parseChoiceContent(answer.content, "答案圖片");
+                                                            return `<li class="p-2 my-1 bg-purple-200 rounded">${answer.prefix} ${parsedContent}</li>`;
+                                                        }).join('');
+                                                        
+                                                        const allCorrectPrefixes = correctAnswers.map(a => a.prefix.replace(/.*\(|\).*/g, '')).join('');
+                                                        const widgetTitle = `多選題 ${widgetKey.replace(/radio|multiple-choice/g, '').trim()} (${allCorrectPrefixes})`;
+                                                        
+                                                        solutionContent += `
+                                                            <div class="p-3 bg-purple-100 rounded-md mb-2">
+                                                                <p class="font-medium text-purple-700">${widgetTitle}</p>
+                                                                <ul class="list-none text-lg text-purple-900 space-y-2 mt-2">${answersHtml}</ul>
+                                                            </div>
+                                                        `;
+                                                    }
+                                                } else {
+                                                    const correctIndex = widget.options.choices.findIndex(c => c.correct);
+                                                    if (correctIndex > -1) {
+                                                        const correctChoice = widget.options.choices[correctIndex];
+                                                        const prefix = prefixes && prefixes[correctIndex] ? prefixes[correctIndex] : `(${String.fromCharCode(65 + correctIndex)})`;
+                                                        const parsedCorrectContent = parseChoiceContent(correctChoice.content, "答案圖片");
+
+                                                        const cleanPrefix = prefix.replace(/.*\(|\).*/g, '');
+                                                        const widgetTitle = `單選題 ${widgetKey.replace(/radio|multiple-choice/g, '').trim()} (${cleanPrefix})`;
+
+                                                        solutionContent += `
+                                                            <div class="p-3 bg-purple-100 rounded-md mb-2">
+                                                                <p class="font-medium text-purple-700">${widgetTitle}</p>
+                                                                <div class="text-lg text-purple-900">${prefix} ${parsedCorrectContent}</div>
+                                                            </div>
+                                                        `;
+                                                    }
+                                                }
+                                            }
+                                            else if (widget.type === 'sorter') {
+                                                if (widget.options && Array.isArray(widget.options.correct) && widget.options.correct.length > 0) {
+                                                    const solutionArray = widget.options.correct;
+                                                    const solutionString = solutionArray.join(' > ');
+                                                    const widgetTitle = `排序題 ${widgetKey.replace('sorter', '').trim()}`;
+                                                    solutionContent += `
+                                                        <div class="p-3 bg-purple-100 rounded-md mb-2">
+                                                            <p class="font-medium text-purple-700">${widgetTitle}:</p>
+                                                            <div class="text-lg text-purple-900">${solutionString}</div>
+                                                        </div>
+                                                    `;
+                                                }
+                                            }
+                                            else if (widget.type === 'dropdown' && Array.isArray(widget.options.choices)) {
+                                                const correctChoice = widget.options.choices.find(c => c.correct);
+                                                if (correctChoice) {
+                                                    const formulaToCopy = JSON.stringify(correctChoice.content);
+                                                    const widgetTitle = `下拉選單 ${widgetKey.replace('dropdown', '').trim()}`;
+                                                    solutionContent += `
+                                                        <div class="p-3 bg-purple-100 rounded-md mb-2">
+                                                            <p class="font-medium text-purple-700">${widgetTitle}:</p>
+                                                            <div class="flex items-center justify-between">
+                                                                <div class="text-lg text-purple-900 flex-grow">${correctChoice.content}</div>
+                                                                <button onclick='copyFormula(this, ${formulaToCopy})'
+                                                                        class="ml-4 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-1 px-3 rounded-md text-sm transition duration-200 ease-in-out flex-shrink-0">
+                                                                    複製答案
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    `;
+                                                }
+                                            }
+                                            else if (widget.type === 'expression') {
+                                                const widgetTitle = `填空區 ${widgetKey.replace('expression', '').trim()}`;
+                                                if (widget.options.solutions && widget.options.solutions.length > 0) {
+                                                    const solutionsHtml = widget.options.solutions.map(solution => {
+                                                        const formulaToCopy = JSON.stringify(solution);
+                                                        return `
+                                                            <div class="flex items-center justify-between py-2 border-b border-purple-200 last:border-b-0">
+                                                                <div class="text-lg text-purple-900 flex-grow">$${solution}$</div>
+                                                                <button onclick='copyFormula(this, ${formulaToCopy})' class="ml-4 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-1 px-3 rounded-md text-sm transition duration-200 ease-in-out flex-shrink-0">複製答案</button>
+                                                            </div>
+                                                        `;
+                                                    }).join('');
+                                                    solutionContent += `<div class="p-3 bg-purple-100 rounded-md mb-2"><p class="font-medium text-purple-700">${widgetTitle} :</p><div class="mt-2">${solutionsHtml}</div></div>`;
+                                                } 
+                                                else if (widget.options.value !== undefined && widget.options.value !== null) {
+                                                    const solution = String(widget.options.value);
+                                                    const formulaToCopy = JSON.stringify(solution);
+                                                    solutionContent += `
+                                                        <div class="p-3 bg-purple-100 rounded-md mb-2">
+                                                            <p class="font-medium text-purple-700">${widgetTitle}:</p>
+                                                            <div class="flex items-center justify-between py-2">
+                                                                <div class="text-lg text-purple-900 flex-grow">$${solution}$</div>
+                                                                <button onclick='copyFormula(this, ${formulaToCopy})' class="ml-4 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-1 px-3 rounded-md text-sm transition duration-200 ease-in-out flex-shrink-0">複製答案</button>
+                                                            </div>
+                                                        </div>
+                                                    `;
+                                                }
+                                            }
+                                            else if (widget.type === 'input-number' || widget.type === 'numeric-input' || widget.type === 'input-text') {
+                                                if (widget.options.value !== undefined && widget.options.value !== null) {
+                                                    const solution = String(widget.options.value);
+                                                    const formulaToCopy = JSON.stringify(solution);
+                                                    const widgetTitle = `文字/數字填空 ${widgetKey.replace(/input-number|numeric-input|input-text/g, '').trim()}`;
+                                                    solutionContent += `
+                                                        <div class="p-3 bg-purple-100 rounded-md mb-2">
+                                                            <p class="font-medium text-purple-700">${widgetTitle}:</p>
+                                                            <div class="flex items-center justify-between py-2">
+                                                                <div class="text-lg text-purple-900 flex-grow">${solution}</div>
+                                                                <button onclick='copyFormula(this, ${formulaToCopy})' class="ml-4 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-1 px-3 rounded-md text-sm transition duration-200 ease-in-out flex-shrink-0">複製答案</button>
+                                                            </div>
+                                                        </div>
+                                                    `;
+                                                }
+                                            }
+                                        });
+                                    }
+
+                                    if (!solutionsFound) {
+                                        solutionContent = '<p>沒有在 widgets 中找到可用的答案。</p>';
+                                    }
+
+                                } else {
+                                    solutionContent = '<p>此題目沒有 widgets 可供抓取答案。</p>';
+                                }
+
+                                if (hintsData && hintsData.length > 0) {
+                                    hintsContent = hintsData.map((hint, hIndex) => `
+                                        <div class="p-3 bg-green-100 rounded-md">
+                                            <p class="font-medium text-green-700">提示 ${hIndex + 1}:</p>
+                                            <div class="text-sm text-green-800">${hint.content}</div>
+                                        </div>
+                                    `).join('');
+                                } else {
+                                    hintsContent = '<p>沒有找到提示或步驟。</p>';
+                                }
+                                
+                                const hintsSectionHtml = !isFromQuery ? `
+                                    <div class="mb-6">
+                                        <h3 class="text-xl font-semibold text-green-800 mb-3">步驟/提示</h3>
+                                        <div class="hints-content text-gray-800 leading-relaxed space-y-4 p-4 bg-green-50 rounded-md">
+                                            ${hintsContent}
+                                        </div>
+                                    </div>
+                                ` : '';
+                                
+                                const questionBlock = document.createElement('div');
+                                questionBlock.className = 'bg-white p-8 rounded-lg shadow-md border border-gray-200';
+                                questionBlock.innerHTML = `
+                                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2 border-gray-300">題目 ${index + 1}</h2>
+                                    <div class="mb-6">
+                                        <h3 class="text-xl font-semibold text-blue-800 mb-3">題目內容</h3>
+                                        <div class="question-content text-gray-900 leading-relaxed text-lg p-4 bg-blue-50 rounded-md">
+                                            ${processedQuestionContent}
+                                        </div>
+                                    </div>
+                                    ${hintsSectionHtml}
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-purple-800 mb-3">答案</h3>
+                                        <div class="solutions-content text-gray-900 leading-relaxed p-4 bg-purple-50 rounded-md">
+                                            ${solutionContent}
+                                        </div>
+                                    </div>
+                                `;
+                                questionsContainer.appendChild(questionBlock);
+                            }
+                        });
+                        
+                        renderMath();
+
+                    } else {
+                        showError('從 API 獲取的資料結構無效或缺少預期的內容。');
+                    }
+                } catch (error) {
+                    console.error('抓取或解析資料時發生錯誤:', error);
+                    showError(`無法抓取資料：${error.message}`);
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            };
+            
+            fetchButton.addEventListener('click', fetchAndDisplayQuestions);
+            apiUrlInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    fetchButton.click();
+                }
+            });
+
+            if (isFromQuery) {
+                // Loaded via bookmarklet, check version
+                if (!bookmarkletVersion || bookmarkletVersion < currentAppVersion) {
+                    // Bookmarklet is outdated, show update message
+                    if (bookmarkletTutorial) bookmarkletTutorial.classList.remove('hidden');
+                    if (updateNag) updateNag.classList.remove('hidden');
+                    if (inputContainer) inputContainer.classList.add('hidden');
+                    loadingIndicator.classList.add('hidden');
+                } else {
+                    // Bookmarklet is up-to-date, proceed with fetching
+                    if (bookmarkletTutorial) bookmarkletTutorial.classList.add('hidden');
+                    if (inputContainer) inputContainer.classList.add('hidden');
+                    apiUrlInput.value = junyiUrlFromQuery;
+                    fetchButton.click();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
